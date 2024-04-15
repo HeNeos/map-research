@@ -2,10 +2,12 @@ import argparse
 
 from shortest_path.dijkstra import run_dijkstra
 from shortest_path.a_star import run_a_star
+from shortest_path.a_star_enhanced import run_a_star_enhanced
 
 map_to_strategies = {
   "shortest_path_dijkstra": run_dijkstra,
-  "shortest_path_a_star": run_a_star
+  "shortest_path_a_star": run_a_star,
+  "shortest_path_a_star_enhanced": run_a_star_enhanced
 }
 
 

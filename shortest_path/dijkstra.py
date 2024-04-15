@@ -52,8 +52,8 @@ def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, de
         heapq.heappush(priority_queue, (simple_graph[next_node].distance, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
-      if iteration%25 == 0:
-        plot_graph(graph, simple_graph, algorithm=f"dijkstra-exploration_{iteration//25:08d}", dpi=384)
+      # if iteration%25 == 0:
+      #   plot_graph(graph, simple_graph, algorithm=f"dijkstra-exploration_{iteration//25:08d}", dpi=384)
   return False
 
 def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=False, algorithm=None) -> None:
