@@ -36,7 +36,7 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
     _, node = heapq.heappop(priority_queue)
     if node == destination:
       if plot:
-        plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced-exploration_{iteration:08d}", dpi=384)
+        plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced-exploration_{iteration:08d}", dpi=1024)
       return True
 
     for edge in graph.out_edges(node):

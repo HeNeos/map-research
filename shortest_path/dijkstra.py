@@ -33,7 +33,7 @@ def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, de
     _, node = heapq.heappop(priority_queue)
     if node == destination:
       if plot:
-        plot_graph(graph, simple_graph, algorithm=f"dijkstra-exploration_{iteration:08d}", dpi=384)
+        plot_graph(graph, simple_graph, algorithm=f"dijkstra-exploration_{iteration:08d}", dpi=1024)
       return True
 
     if simple_graph[node].visited:
@@ -79,7 +79,7 @@ def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source:
     print(f"Total dist = {dist} km")
     print(f"Total time = {int (time_sec // 60)} m {int(time_sec % 60)} sec")
     print(f"Speed average = {dist / time}")
-    plot_graph(graph, simple_graph, algorithm="dijkstra-path", dpi=1200)
+    plot_graph(graph, simple_graph, algorithm="dijkstra-path", dpi=1024)
 
 def run_dijkstra(location=None, source_point=None, destination_point=None) -> None:
   if location is None or source_point is None:
