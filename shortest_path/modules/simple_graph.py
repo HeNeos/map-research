@@ -5,4 +5,5 @@ class Node:
   distance: float
   previous: Optional[int]
   size: float
+  alpha: float
   node_type: str

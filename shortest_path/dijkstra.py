@@ -27,18 +27,20 @@ def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, de
   for edge in graph.edges:
     style_unvisited_edge(graph, edge)
 
+  iteration = 0
   priority_queue = [(0, source)]
   while priority_queue:
     _, node = heapq.heappop(priority_queue)
     if node == destination:
       if plot:
-        plot_graph(graph, simple_graph)
+        plot_graph(graph, simple_graph, algorithm=f"dijkstra-exploration_{iteration:08d}", dpi=384)
       return True
 
     if simple_graph[node].visited:
       continue
     simple_graph[node].visited = True
     for edge in graph.out_edges(node):
+      iteration += 1
       current_node: int = edge[0]
       next_node: int = edge[1]
       visited_edge = (current_node, next_node, 0)
@@ -50,6 +52,8 @@ def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, de
         heapq.heappush(priority_queue, (simple_graph[next_node].distance, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
+      if iteration%25 == 0:
+        plot_graph(graph, simple_graph, algorithm=f"dijkstra-exploration_{iteration//25:08d}", dpi=384)
   return False
 
 def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=False, algorithm=None) -> None:
@@ -75,7 +79,7 @@ def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source:
     print(f"Total dist = {dist} km")
     print(f"Total time = {int (time_sec // 60)} m {int(time_sec % 60)} sec")
     print(f"Speed average = {dist / time}")
-    plot_graph(graph, simple_graph)
+    plot_graph(graph, simple_graph, algorithm="dijkstra-path", dpi=1200)
 
 def run_dijkstra(location=None, source_point=None, destination_point=None) -> None:
   if location is None or source_point is None:
@@ -108,10 +112,14 @@ def run_dijkstra(location=None, source_point=None, destination_point=None) -> No
     destination = ox.nearest_nodes(G, float(destination_longitude), float(destination_latitude))
 
   simple_graph: Dict[int, Node] = create_simple_graph(G)
+
   simple_graph[source].distance = 0
-  simple_graph[source].size = 50
-  simple_graph[destination].size = 50
+  simple_graph[source].size = 35
+  simple_graph[source].alpha = 1
   simple_graph[source].node_type = "source"
+
+  simple_graph[destination].size = 35
+  simple_graph[destination].alpha = 1
   simple_graph[destination].node_type = "destination"
 
   if dijkstra(G, simple_graph, source, destination, plot=True):
