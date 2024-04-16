@@ -1,6 +1,6 @@
 import osmnx as ox
 from networkx import MultiDiGraph
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from .simple_graph import Node
 import matplotlib.pyplot as plt
 
@@ -57,6 +57,31 @@ def plot_heatmap(graph: MultiDiGraph, algorithm) -> None:
     bgcolor = "#18080e"
   )
 
+def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=True, algorithm=None) -> None:
+  for edge in graph.edges:
+    style_unvisited_edge(graph, edge)
+
+  dist: float = 0
+  time: float = 0
+  current: int = destination
+  while current != source:
+    previous: int = simple_graph[current].previous
+    edge_data = graph.edges[(previous, current, 0)]
+    current_length = edge_data["length"] / 1000
+    current_max_speed = edge_data["maxspeed"]
+    dist += current_length
+    time += current_length / current_max_speed
+    style_path_edge(graph, (previous, current, 0))
+    if algorithm:
+      edge_data[f"{algorithm}_uses"] = edge_data.get(f"{algorithm}_uses", 0) + 1
+    current = previous
+  if plot:
+    time_sec = time * 60 * 60
+    print(f"Total dist = {dist} km")
+    print(f"Total time = {int (time_sec // 60)} m {int(time_sec % 60)} sec")
+    print(f"Speed average = {dist / time}")
+    plot_graph(graph, simple_graph, algorithm=f"{algorithm}-path", dpi=1024)
+
 def haversine(lon_1, lat_1, lon_2, lat_2):
   lon_1, lat_1, lon_2, lat_2 = map(radians, [lon_1, lat_1, lon_2, lat_2])
 
@@ -91,7 +116,7 @@ def find_distance_by_nodes(graph: MultiDiGraph, source, destination):
 
   return haversine(source_longitude, source_latitude, destination_longtiude, destination_latitude)
 
-def create_simple_graph(graph: MultiDiGraph) -> Dict[int, Node]:
+def create_simple_graph(graph: MultiDiGraph, source: int, destination: int) -> Dict[int, Node]:
   simple_graph: Dict[int, Node] = dict()
   for node in graph.nodes:
     simple_graph[node] = Node()
@@ -102,4 +127,27 @@ def create_simple_graph(graph: MultiDiGraph) -> Dict[int, Node]:
     simple_graph[node].alpha = 0.08
     simple_graph[node].node_type = "default"
   
+  simple_graph[source].distance = 0
+  simple_graph[source].size = 35
+  simple_graph[source].alpha = 1
+  simple_graph[source].node_type = "source"
+
+  simple_graph[destination].size = 35
+  simple_graph[destination].alpha = 1
+  simple_graph[destination].node_type = "destination"
+  
   return simple_graph
+
+def clean_max_speed(graph: MultiDiGraph) -> None:
+  for edge in graph.edges:
+    edge_data = graph.edges[edge]
+    max_speed = 30
+    if "maxspeed" in edge_data:
+      max_speeds = edge_data["maxspeed"]
+      if isinstance(max_speeds, list):
+        speeds: List[int] = [ int(speed) for speed in max_speeds if speed and speed.isnumeric() ]
+        if len(speeds) > 0:
+          max_speed = min(speeds)
+      elif isinstance(max_speeds, str) and max_speeds.isnumeric():
+        max_speed = int(max_speeds)
+    edge_data["maxspeed"] = max_speed
