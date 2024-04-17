@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 from math import radians, cos, sin, asin, sqrt
 
 def style_unvisited_edge(graph: MultiDiGraph, edge) -> None:
-  graph.edges[edge]["color"] = plt.cm.viridis(0.1)
-  graph.edges[edge]["alpha"] = 0.35
+  graph.edges[edge]["color"] = plt.cm.viridis(0.25)
+  graph.edges[edge]["alpha"] = 0.4
   graph.edges[edge]["linewidth"] = 0.28
 
 def style_visited_edge(graph: MultiDiGraph, edge) -> None:
-  graph.edges[edge]["color"] = plt.cm.viridis(0.4)
-  graph.edges[edge]["alpha"] = 0.45
+  graph.edges[edge]["color"] = plt.cm.viridis(0.45)
+  graph.edges[edge]["alpha"] = 0.55
   graph.edges[edge]["linewidth"] = 0.45
 
 def style_active_edge(graph: MultiDiGraph, edge) -> None:
@@ -40,7 +40,7 @@ def plot_graph(graph: MultiDiGraph, simple_graph: Dict[int, Node], algorithm: st
     edge_alpha=[graph.edges[edge]["alpha"] for edge in graph.edges],
     edge_linewidth=[graph.edges[edge]["linewidth"] for edge in graph.edges],
     node_color=[node_colors.get(simple_graph[node].node_type, "white") for node in graph.nodes],
-    bgcolor="#18080e",
+    bgcolor="#000000",
     show=False,
     save=True,
     dpi=dpi,
@@ -54,7 +54,7 @@ def plot_heatmap(graph: MultiDiGraph, algorithm) -> None:
     graph,
     node_size = 0,
     edge_color = edge_colors,
-    bgcolor = "#18080e"
+    bgcolor = "#000000"
   )
 
 def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=True, algorithm=None) -> None:

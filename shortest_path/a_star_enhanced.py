@@ -8,32 +8,32 @@ import heapq
 from .modules.utils import style_unvisited_edge, style_visited_edge, style_active_edge, style_path_edge, plot_graph, reconstruct_path, create_simple_graph, find_distance_by_nodes, clean_max_speed
 from .modules.simple_graph import Node
 
-def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=False) -> bool:
+def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=False, dpi=2048) -> bool:
   for edge in graph.edges:
     style_unvisited_edge(graph, edge)
 
   iteration = 0
   priority_queue = [(0, source)]
-  simple_graph[source].visited = True
   best_node_distance = None
   source_to_destination_min_distance = find_distance_by_nodes(graph, source, destination)
   while priority_queue:
     _, node = heapq.heappop(priority_queue)
     if node == destination:
       if plot:
-        plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced-exploration_{iteration:08d}", dpi=1024)
+        plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iteration:08d}_{dpi}", dpi=dpi)
       return True
 
+    if simple_graph[node].visited:
+      continue
+    simple_graph[node].visited = True
+
     for edge in graph.out_edges(node):
+      iteration += 1
       current_node: int = edge[0]
       next_node: int = edge[1]
       visited_edge = (current_node, next_node, 0)
       style_visited_edge(graph, visited_edge)
 
-      if simple_graph[next_node].visited:
-        continue
-
-      iteration += 1
       edge_weight: float = graph.edges[visited_edge]["length"] / 1000
       destination_distance = find_distance_by_nodes(graph, next_node, destination)
       source_distance = find_distance_by_nodes(graph, source, current_node)
@@ -48,7 +48,6 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
       edge_max_speed = graph.edges[visited_edge]["maxspeed"]
       total_weight /= edge_max_speed
       if simple_graph[next_node].distance > simple_graph[node].distance + total_weight:
-        simple_graph[next_node].visited = True
         simple_graph[next_node].distance = simple_graph[node].distance + total_weight
         simple_graph[next_node].previous = node
         if best_node_distance:
@@ -61,8 +60,8 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
         heapq.heappush(priority_queue, (simple_graph[next_node].distance, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
-      # if iteration%5 == 0:
-      #   plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced-exploration_{iteration//5:08d}", dpi=384)
+      # if iteration%2 == 0:
+      #   plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iteration//2:08d}", dpi=450)
   return False
 
 def run_a_star_enhanced(location=None, source_point=None, destination_point=None) -> None:
