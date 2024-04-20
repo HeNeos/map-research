@@ -8,23 +8,23 @@ from math import radians, cos, sin, asin, sqrt
 
 def style_unvisited_edge(graph: MultiDiGraph, edge) -> None:
   graph.edges[edge]["color"] = plt.cm.viridis(0.25)
-  graph.edges[edge]["alpha"] = 0.4
-  graph.edges[edge]["linewidth"] = 0.28
+  graph.edges[edge]["alpha"] = 0.35
+  graph.edges[edge]["linewidth"] = 0.2
 
 def style_visited_edge(graph: MultiDiGraph, edge) -> None:
   graph.edges[edge]["color"] = plt.cm.viridis(0.45)
   graph.edges[edge]["alpha"] = 0.55
-  graph.edges[edge]["linewidth"] = 0.45
+  graph.edges[edge]["linewidth"] = 0.35
 
 def style_active_edge(graph: MultiDiGraph, edge) -> None:
   graph.edges[edge]["color"] = plt.cm.viridis(0.7)
-  graph.edges[edge]["alpha"] = 1.0
-  graph.edges[edge]["linewidth"] = 0.65
+  graph.edges[edge]["alpha"] = 0.8
+  graph.edges[edge]["linewidth"] = 0.55
 
 def style_path_edge(graph: MultiDiGraph, edge) -> None:
   graph.edges[edge]["color"] = plt.cm.viridis(1.0)
   graph.edges[edge]["alpha"] = 1.0
-  graph.edges[edge]["linewidth"] = 0.8
+  graph.edges[edge]["linewidth"] = 0.7
 
 def plot_graph(graph: MultiDiGraph, simple_graph: Dict[int, Node], algorithm: str="default", dpi: int=1024) -> None:
   node_colors = {
@@ -123,16 +123,16 @@ def create_simple_graph(graph: MultiDiGraph, source: int, destination: int) -> D
     simple_graph[node].visited = False
     simple_graph[node].distance = float("inf")
     simple_graph[node].previous = None
-    simple_graph[node].size = 1.02
-    simple_graph[node].alpha = 0.08
+    simple_graph[node].size = 0.085
+    simple_graph[node].alpha = 0.06
     simple_graph[node].node_type = "default"
   
   simple_graph[source].distance = 0
-  simple_graph[source].size = 35
+  simple_graph[source].size = 25
   simple_graph[source].alpha = 1
   simple_graph[source].node_type = "source"
 
-  simple_graph[destination].size = 35
+  simple_graph[destination].size = 25
   simple_graph[destination].alpha = 1
   simple_graph[destination].node_type = "destination"
   

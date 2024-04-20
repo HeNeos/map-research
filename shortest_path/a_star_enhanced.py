@@ -8,7 +8,7 @@ import heapq
 from .modules.utils import style_unvisited_edge, style_visited_edge, style_active_edge, style_path_edge, plot_graph, reconstruct_path, create_simple_graph, find_distance_by_nodes, clean_max_speed
 from .modules.simple_graph import Node
 
-def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=False, dpi=2048) -> bool:
+def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, max_speed_allowed=100., plot=False, dpi=2048) -> bool:
   for edge in graph.edges:
     style_unvisited_edge(graph, edge)
 
@@ -27,6 +27,7 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
       continue
     simple_graph[node].visited = True
 
+    level_max_distance = None
     for edge in graph.out_edges(node):
       iteration += 1
       current_node: int = edge[0]
@@ -34,34 +35,29 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
       visited_edge = (current_node, next_node, 0)
       style_visited_edge(graph, visited_edge)
 
-      edge_weight: float = graph.edges[visited_edge]["length"] / 1000
+      edge_weight: float = (graph.edges[visited_edge]["length"] / 1000) / graph.edges[visited_edge]["maxspeed"]
       destination_distance = find_distance_by_nodes(graph, next_node, destination)
-      source_distance = find_distance_by_nodes(graph, source, current_node)
-
-      if simple_graph[current_node].distance == 0:
-        scale_factor = 1
-      else:
-        scale_factor = source_distance / simple_graph[current_node].distance
-      expected_distance = destination_distance / scale_factor
-
-      total_weight: float = edge_weight + (0.5*destination_distance + 0.5*expected_distance)
-      edge_max_speed = graph.edges[visited_edge]["maxspeed"]
-      total_weight /= edge_max_speed
-      if simple_graph[next_node].distance > simple_graph[node].distance + total_weight:
-        simple_graph[next_node].distance = simple_graph[node].distance + total_weight
+      
+      heuristic_weight: float = destination_distance / max_speed_allowed
+      if simple_graph[next_node].distance > simple_graph[node].distance + edge_weight:
+        simple_graph[next_node].distance = simple_graph[node].distance + edge_weight
         simple_graph[next_node].previous = node
-        if best_node_distance:
-          if destination_distance > best_node_distance:
-            continue
-          else:
-            best_node_distance = max(destination_distance, source_to_destination_min_distance)
+        if level_max_distance:
+          level_max_distance = max(level_max_distance, destination_distance)
         else:
-          best_node_distance = destination_distance
-        heapq.heappush(priority_queue, (simple_graph[next_node].distance, next_node))
+          level_max_distance = destination_distance
+        if best_node_distance:
+          if destination_distance > 2*best_node_distance:
+            continue
+        else:
+          best_node_distance = min(source_to_destination_min_distance, destination_distance)
+        heapq.heappush(priority_queue, (simple_graph[next_node].distance + heuristic_weight, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
       # if iteration%2 == 0:
       #   plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iteration//2:08d}", dpi=450)
+    if level_max_distance:
+      best_node_distance = min(best_node_distance, level_max_distance)
   return False
 
 def run_a_star_enhanced(location=None, source_point=None, destination_point=None) -> None:
@@ -85,7 +81,7 @@ def run_a_star_enhanced(location=None, source_point=None, destination_point=None
     print("Failed to load the graph")
     raise Exception
 
-  clean_max_speed(G)
+  max_speed_allowed = clean_max_speed(G, return_max_speed=True)
 
   source = ox.nearest_nodes(G, longitude, latitude)
   if destination_point is None:
@@ -96,7 +92,7 @@ def run_a_star_enhanced(location=None, source_point=None, destination_point=None
 
   simple_graph: Dict[int, Node] = create_simple_graph(G, source, destination)
 
-  if a_star_enhanced(G, simple_graph, source, destination, plot=True):
+  if a_star_enhanced(G, simple_graph, source, destination, max_speed_allowed, plot=True):
     reconstruct_path(G, simple_graph, source, destination, plot=True, algorithm="a_star_enhanced")
   else:
     print("Failed to find a path")
