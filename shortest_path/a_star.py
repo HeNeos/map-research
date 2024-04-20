@@ -40,8 +40,8 @@ def a_star(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, dest
         heapq.heappush(priority_queue, (simple_graph[next_node].distance + heuristic_weight, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
-      # if iteration%2 == 0:
-      #   plot_graph(graph, simple_graph, algorithm=f"a_star_assets/a_star-exploration_{iteration//2:08d}", dpi=450)
+      # if iteration%90 == 0:
+      #   plot_graph(graph, simple_graph, algorithm=f"a_star_assets/a_star-exploration_{iteration//90:08d}", dpi=450)
   return False
 
 def run_a_star(location=None, source_point=None, destination_point=None) -> None:

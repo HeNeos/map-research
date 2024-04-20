@@ -80,7 +80,7 @@ def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source:
     print(f"Total dist = {dist} km")
     print(f"Total time = {int (time_sec // 60)} m {int(time_sec % 60)} sec")
     print(f"Speed average = {dist / time}")
-    plot_graph(graph, simple_graph, algorithm=f"{algorithm}-path", dpi=1024)
+    plot_graph(graph, simple_graph, algorithm=f"{algorithm}_assets/{algorithm}-path", dpi=1024)
 
 def haversine(lon_1, lat_1, lon_2, lat_2):
   lon_1, lat_1, lon_2, lat_2 = map(radians, [lon_1, lat_1, lon_2, lat_2])

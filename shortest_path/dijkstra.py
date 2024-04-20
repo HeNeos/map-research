@@ -39,8 +39,8 @@ def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, de
         heapq.heappush(priority_queue, (simple_graph[next_node].distance, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
-      # if iteration%10 == 0:
-      #   plot_graph(graph, simple_graph, algorithm=f"dijkstra_assets/dijkstra-exploration_{iteration//10:08d}", dpi=450)
+      # if iteration%90 == 0:
+      #   plot_graph(graph, simple_graph, algorithm=f"dijkstra_assets/dijkstra-exploration_{iteration//90:08d}", dpi=450)
   return False
 
 def run_dijkstra(location=None, source_point=None, destination_point=None) -> None:

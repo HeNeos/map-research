@@ -54,8 +54,8 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
         heapq.heappush(priority_queue, (simple_graph[next_node].distance + heuristic_weight, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
-      # if iteration%2 == 0:
-      #   plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iteration//2:08d}", dpi=450)
+      # if iteration%90 == 0:
+      #   plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iteration//90:08d}", dpi=450)
     if level_max_distance:
       best_node_distance = min(best_node_distance, level_max_distance)
   return False
