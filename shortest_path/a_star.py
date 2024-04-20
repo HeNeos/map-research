@@ -8,7 +8,7 @@ import heapq
 from .modules.utils import style_unvisited_edge, style_visited_edge, style_active_edge, style_path_edge, plot_graph, reconstruct_path, create_simple_graph, find_distance_by_nodes, clean_max_speed
 from .modules.simple_graph import Node
 
-def a_star(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=False, dpi=2048) -> bool:
+def a_star(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, max_speed_allowed: float=100., plot=False, dpi=2048) -> bool:
   for edge in graph.edges:
     style_unvisited_edge(graph, edge)
 
@@ -32,13 +32,12 @@ def a_star(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, dest
       visited_edge = (current_node, next_node, 0)
       style_visited_edge(graph, visited_edge)
 
-      edge_weight: float = graph.edges[visited_edge]["length"] / 1000
-      total_weight: float = edge_weight + find_distance_by_nodes(graph, next_node, destination)
-      total_weight /= graph.edges[visited_edge]["maxspeed"]
-      if simple_graph[next_node].distance > simple_graph[node].distance + total_weight:
-        simple_graph[next_node].distance = simple_graph[node].distance + total_weight
+      edge_weight: float = (graph.edges[visited_edge]["length"] / 1000) / graph.edges[visited_edge]["maxspeed"]
+      heuristic_weight: float = find_distance_by_nodes(graph, next_node, destination) / max_speed_allowed
+      if simple_graph[next_node].distance > simple_graph[node].distance + edge_weight:
+        simple_graph[next_node].distance = simple_graph[node].distance + edge_weight
         simple_graph[next_node].previous = node
-        heapq.heappush(priority_queue, (simple_graph[next_node].distance, next_node))
+        heapq.heappush(priority_queue, (simple_graph[next_node].distance + heuristic_weight, next_node))
         for active_edges in graph.out_edges(next_node):
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
       # if iteration%2 == 0:
@@ -66,7 +65,7 @@ def run_a_star(location=None, source_point=None, destination_point=None) -> None
     print("Failed to load the graph")
     raise Exception
 
-  clean_max_speed(G)
+  max_speed_allowed = clean_max_speed(G, return_max_speed=True)
 
   source = ox.nearest_nodes(G, longitude, latitude)
   if destination_point is None:
@@ -77,7 +76,7 @@ def run_a_star(location=None, source_point=None, destination_point=None) -> None
 
   simple_graph: Dict[int, Node] = create_simple_graph(G, source, destination)
 
-  if a_star(G, simple_graph, source, destination, plot=True):
+  if a_star(G, simple_graph, source, destination, max_speed_allowed, plot=True):
     reconstruct_path(G, simple_graph, source, destination, plot=True, algorithm="a_star")
   else:
     print("Failed to find a path")

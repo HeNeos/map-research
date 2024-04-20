@@ -138,10 +138,11 @@ def create_simple_graph(graph: MultiDiGraph, source: int, destination: int) -> D
   
   return simple_graph
 
-def clean_max_speed(graph: MultiDiGraph) -> None:
+def clean_max_speed(graph: MultiDiGraph, return_max_speed=False) -> Optional[float]:
+  max_speed_allowed = 30
   for edge in graph.edges:
     edge_data = graph.edges[edge]
-    max_speed = 30
+    max_speed = max_speed_allowed
     if "maxspeed" in edge_data:
       max_speeds = edge_data["maxspeed"]
       if isinstance(max_speeds, list):
@@ -151,3 +152,6 @@ def clean_max_speed(graph: MultiDiGraph) -> None:
       elif isinstance(max_speeds, str) and max_speeds.isnumeric():
         max_speed = int(max_speeds)
     edge_data["maxspeed"] = max_speed
+    max_speed_allowed = max(max_speed, max_speed_allowed)
+  if return_max_speed:
+    return max_speed_allowed
