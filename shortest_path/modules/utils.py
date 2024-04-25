@@ -3,8 +3,7 @@ from networkx import MultiDiGraph
 from typing import Optional, Dict, List
 from .simple_graph import Node
 import matplotlib.pyplot as plt
-
-from math import radians, cos, sin, asin, sqrt
+from haversine import haversine
 
 def style_unvisited_edge(graph: MultiDiGraph, edge) -> None:
   graph.edges[edge]["color"] = plt.cm.viridis(0.25)
@@ -75,22 +74,12 @@ def reconstruct_path(graph: MultiDiGraph, simple_graph: Dict[int, Node], source:
     if algorithm:
       edge_data[f"{algorithm}_uses"] = edge_data.get(f"{algorithm}_uses", 0) + 1
     current = previous
+  time_sec = time * 60 * 60
+  print(f"Total dist = {dist} km")
+  print(f"Total time = {int (time_sec // 60)} m {int(time_sec % 60)} sec")
+  print(f"Speed average = {dist / time}")
   if plot:
-    time_sec = time * 60 * 60
-    print(f"Total dist = {dist} km")
-    print(f"Total time = {int (time_sec // 60)} m {int(time_sec % 60)} sec")
-    print(f"Speed average = {dist / time}")
     plot_graph(graph, simple_graph, algorithm=f"{algorithm}_assets/{algorithm}-path", dpi=1024)
-
-def haversine(lon_1, lat_1, lon_2, lat_2):
-  lon_1, lat_1, lon_2, lat_2 = map(radians, [lon_1, lat_1, lon_2, lat_2])
-
-  dlon = lon_2 - lon_1 
-  dlat = lat_2 - lat_1 
-  a = sin(dlat/2)**2 + cos(lat_1) * cos(lat_2) * sin(dlon/2)**2
-  c = 2 * asin(sqrt(a)) 
-  r = 6371
-  return c * r
 
 def find_nearest_node_from_point(graph: MultiDiGraph, latitude, longitude) -> int:
   nearest_node: Optional[int] = None
@@ -98,7 +87,7 @@ def find_nearest_node_from_point(graph: MultiDiGraph, latitude, longitude) -> in
   for node in graph.nodes:
     current_latitude: float = float(graph.nodes[node]["y"])
     current_longitude: float = float(graph.nodes[node]["x"])
-    distance = haversine(longitude, latitude, current_longitude, current_latitude)
+    distance = haversine((longitude, latitude), (current_longitude, current_latitude))
     if min_distance is None or distance < min_distance:
       min_distance = distance
       nearest_node = node
@@ -114,7 +103,7 @@ def find_distance_by_nodes(graph: MultiDiGraph, source, destination):
   destination_latitude = graph.nodes[destination]["y"]
   destination_longtiude = graph.nodes[destination]["x"]
 
-  return haversine(source_longitude, source_latitude, destination_longtiude, destination_latitude)
+  return haversine((source_longitude, source_latitude), (destination_longtiude, destination_latitude))
 
 def create_simple_graph(graph: MultiDiGraph, source: int, destination: int) -> Dict[int, Node]:
   simple_graph: Dict[int, Node] = dict()
@@ -139,10 +128,11 @@ def create_simple_graph(graph: MultiDiGraph, source: int, destination: int) -> D
   return simple_graph
 
 def clean_max_speed(graph: MultiDiGraph, return_max_speed=False) -> Optional[float]:
+  min_max_speed_allowed = 30
   max_speed_allowed = 30
   for edge in graph.edges:
     edge_data = graph.edges[edge]
-    max_speed = max_speed_allowed
+    max_speed = min_max_speed_allowed
     if "maxspeed" in edge_data:
       max_speeds = edge_data["maxspeed"]
       if isinstance(max_speeds, list):
@@ -151,6 +141,8 @@ def clean_max_speed(graph: MultiDiGraph, return_max_speed=False) -> Optional[flo
           max_speed = min(speeds)
       elif isinstance(max_speeds, str) and max_speeds.isnumeric():
         max_speed = int(max_speeds)
+      elif isinstance(max_speeds, int):
+        max_speed = max_speeds
     edge_data["maxspeed"] = max_speed
     max_speed_allowed = max(max_speed, max_speed_allowed)
   if return_max_speed:

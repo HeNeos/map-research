@@ -1,6 +1,6 @@
 import osmnx as ox
 from networkx import MultiDiGraph
-from typing import Dict, List
+from typing import Dict, List, Optional
 import random
 import requests
 import heapq
@@ -8,7 +8,7 @@ import heapq
 from .modules.utils import style_unvisited_edge, style_visited_edge, style_active_edge, style_path_edge, plot_graph, reconstruct_path, create_simple_graph, find_distance_by_nodes, clean_max_speed
 from .modules.simple_graph import Node
 
-def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, max_speed_allowed=100., plot=False, dpi=2048) -> bool:
+def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, max_speed_allowed=100.) -> Optional[int]:
   for edge in graph.edges:
     style_unvisited_edge(graph, edge)
 
@@ -19,9 +19,7 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
   while priority_queue:
     _, node = heapq.heappop(priority_queue)
     if node == destination:
-      if plot:
-        plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iteration:08d}_{dpi}", dpi=dpi)
-      return True
+      return iteration
 
     if simple_graph[node].visited:
       continue
@@ -58,7 +56,7 @@ def a_star_enhanced(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: 
       #   plot_graph(graph, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iteration//90:08d}", dpi=450)
     if level_max_distance:
       best_node_distance = min(best_node_distance, level_max_distance)
-  return False
+  return None
 
 def run_a_star_enhanced(location=None, source_point=None, destination_point=None) -> None:
   if location is None or source_point is None:
@@ -92,7 +90,9 @@ def run_a_star_enhanced(location=None, source_point=None, destination_point=None
 
   simple_graph: Dict[int, Node] = create_simple_graph(G, source, destination)
 
-  if a_star_enhanced(G, simple_graph, source, destination, max_speed_allowed, plot=True):
+  iterations = a_star_enhanced(G, simple_graph, source, destination, max_speed_allowed)
+  if iterations is not None:
+    plot_graph(G, simple_graph, algorithm=f"a_star_enhanced_assets/a_star_enhanced-exploration_{iterations:08d}_2048", dpi=2048)
     reconstruct_path(G, simple_graph, source, destination, plot=True, algorithm="a_star_enhanced")
   else:
     print("Failed to find a path")

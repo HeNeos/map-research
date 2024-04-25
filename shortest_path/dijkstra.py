@@ -1,6 +1,6 @@
 import osmnx as ox
 from networkx import MultiDiGraph
-from typing import Dict, List
+from typing import Dict, List, Optional
 import random
 import requests
 import heapq
@@ -8,7 +8,7 @@ import heapq
 from .modules.utils import style_unvisited_edge, style_visited_edge, style_active_edge, style_path_edge, plot_graph, reconstruct_path, create_simple_graph, clean_max_speed
 from .modules.simple_graph import Node
 
-def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int, plot=False, dpi=2048) -> bool:
+def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, destination: int) -> Optional[int]:
   for edge in graph.edges:
     style_unvisited_edge(graph, edge)
 
@@ -17,9 +17,7 @@ def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, de
   while priority_queue:
     _, node = heapq.heappop(priority_queue)
     if node == destination:
-      if plot:
-        plot_graph(graph, simple_graph, algorithm=f"dijkstra_assets/dijkstra-exploration_{iteration:08d}_{dpi}", dpi=dpi)
-      return True
+      return iteration
 
     if simple_graph[node].visited:
       continue
@@ -41,7 +39,7 @@ def dijkstra(graph: MultiDiGraph, simple_graph: Dict[int, Node], source: int, de
           style_active_edge(graph, (active_edges[0], active_edges[1], 0))
       # if iteration%90 == 0:
       #   plot_graph(graph, simple_graph, algorithm=f"dijkstra_assets/dijkstra-exploration_{iteration//90:08d}", dpi=450)
-  return False
+  return None
 
 def run_dijkstra(location=None, source_point=None, destination_point=None) -> None:
   if location is None or source_point is None:
@@ -75,7 +73,9 @@ def run_dijkstra(location=None, source_point=None, destination_point=None) -> No
 
   simple_graph: Dict[int, Node] = create_simple_graph(G, source, destination)
 
-  if dijkstra(G, simple_graph, source, destination, plot=True):
+  iterations = dijkstra(G, simple_graph, source, destination)
+  if iterations is not None:
+    plot_graph(G, simple_graph, algorithm=f"dijkstra_assets/dijkstra-exploration_{iterations:08d}_2048", dpi=2048)
     reconstruct_path(G, simple_graph, source, destination, plot=True, algorithm="dijkstra")
   else:
     print("Failed to find a path")
