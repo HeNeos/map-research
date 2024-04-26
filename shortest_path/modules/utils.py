@@ -1,29 +1,78 @@
 import osmnx as ox
 from networkx import MultiDiGraph
 from typing import Optional, Dict, List
-from .simple_graph import Node
+from .simple_graph import Node, RawNode, NodeId, Edge, EdgeId, Graph
 import matplotlib.pyplot as plt
 from haversine import haversine
 
+class UnvisitedEdge:
+  color = plt.cm.viridis(0.25)
+  alpha = 0.35
+  linewidth = 0.2
+
+class VisitedEdge:
+  color = plt.cm.viridis(0.45)
+  alpha = 0.55
+  linewidth = 0.35
+
+class ActiveEdge:
+  color = plt.cm.viridis(0.7)
+  alpha = 0.8
+  linewidth = 0.55
+
+class PathEdge:
+  color = plt.cm.viridis(1.0)
+  alpha = 1.0
+  linewidth = 0.7
+
+NODE_SIZE = 0.085
+NODE_ALPHA = 0.06
+
+POINT_SIZE = 25
+POINT_ALPHA = 1
+
 def style_unvisited_edge(graph: MultiDiGraph, edge) -> None:
-  graph.edges[edge]["color"] = plt.cm.viridis(0.25)
-  graph.edges[edge]["alpha"] = 0.35
-  graph.edges[edge]["linewidth"] = 0.2
+  graph.edges[edge]["color"] = UnvisitedEdge.color
+  graph.edges[edge]["alpha"] = UnvisitedEdge.alpha
+  graph.edges[edge]["linewidth"] = UnvisitedEdge.linewidth
 
 def style_visited_edge(graph: MultiDiGraph, edge) -> None:
-  graph.edges[edge]["color"] = plt.cm.viridis(0.45)
-  graph.edges[edge]["alpha"] = 0.55
-  graph.edges[edge]["linewidth"] = 0.35
+  graph.edges[edge]["color"] = VisitedEdge.color
+  graph.edges[edge]["alpha"] = VisitedEdge.alpha
+  graph.edges[edge]["linewidth"] = VisitedEdge.linewidth
 
 def style_active_edge(graph: MultiDiGraph, edge) -> None:
-  graph.edges[edge]["color"] = plt.cm.viridis(0.7)
-  graph.edges[edge]["alpha"] = 0.8
-  graph.edges[edge]["linewidth"] = 0.55
+  graph.edges[edge]["color"] = ActiveEdge.color
+  graph.edges[edge]["alpha"] = ActiveEdge.alpha
+  graph.edges[edge]["linewidth"] = ActiveEdge.linewidth
 
 def style_path_edge(graph: MultiDiGraph, edge) -> None:
-  graph.edges[edge]["color"] = plt.cm.viridis(1.0)
-  graph.edges[edge]["alpha"] = 1.0
-  graph.edges[edge]["linewidth"] = 0.7
+  graph.edges[edge]["color"] = PathEdge.color
+  graph.edges[edge]["alpha"] = PathEdge.alpha
+  graph.edges[edge]["linewidth"] = PathEdge.linewidth
+
+def plot_graph_raw(graph: MultiDiGraph, edges_in_path: List[EdgeId]):
+  destination = edges_in_path[0][-1]
+  source = edges_in_path[-1][0]
+  node_colors = {
+    "source": "blue",
+    "destination": "red",
+    "default": "white"
+  }
+  ox.plot_graph(
+    graph,
+    node_size=[POINT_SIZE if node in (source, destination) else NODE_SIZE for node in graph.nodes],
+    node_alpha=[POINT_ALPHA if node in (source, destination) else NODE_ALPHA for node in graph.nodes],
+    edge_color=[PathEdge.color if (edge[0], edge[1]) in edges_in_path else UnvisitedEdge.color for edge in graph.edges],
+    edge_alpha=[PathEdge.alpha if (edge[0], edge[1]) in edges_in_path else UnvisitedEdge.alpha for edge in graph.edges],
+    edge_linewidth=[PathEdge.linewidth if (edge[0], edge[1]) in edges_in_path else UnvisitedEdge.linewidth for edge in graph.edges],
+    node_color=["white" if node not in (source, destination) else "blue" if node == source else "red" for node in graph.nodes],
+    bgcolor="#000000",
+    show=True,
+    save=False,
+    dpi=256
+  )
+  plt.close()
 
 def plot_graph(graph: MultiDiGraph, simple_graph: Dict[int, Node], algorithm: str="default", dpi: int=1024) -> None:
   node_colors = {
@@ -112,38 +161,56 @@ def create_simple_graph(graph: MultiDiGraph, source: int, destination: int) -> D
     simple_graph[node].visited = False
     simple_graph[node].distance = float("inf")
     simple_graph[node].previous = None
-    simple_graph[node].size = 0.085
-    simple_graph[node].alpha = 0.06
+    simple_graph[node].size = NODE_SIZE
+    simple_graph[node].alpha = NODE_ALPHA
     simple_graph[node].node_type = "default"
   
   simple_graph[source].distance = 0
-  simple_graph[source].size = 25
-  simple_graph[source].alpha = 1
+  simple_graph[source].size = POINT_SIZE
+  simple_graph[source].alpha = POINT_ALPHA
   simple_graph[source].node_type = "source"
 
-  simple_graph[destination].size = 25
-  simple_graph[destination].alpha = 1
+  simple_graph[destination].size = POINT_SIZE
+  simple_graph[destination].alpha = POINT_ALPHA
   simple_graph[destination].node_type = "destination"
   
   return simple_graph
+
+def get_max_speed(edge, min_max_speed_allowed=30):
+  max_speed = min_max_speed_allowed
+  if "maxspeed" in edge:
+    max_speeds = edge["maxspeed"]
+    if isinstance(max_speeds, list):
+      speeds: List[int] = [int(speed) for speed in max_speeds if speed and speed.isnumeric()]
+      if len(speeds) > 0:
+        max_speed = min(speeds)
+    elif isinstance(max_speeds, str) and max_speeds.isnumeric():
+      max_speed = int(max_speeds)
+    elif isinstance(max_speeds, int):
+      max_speed = max_speeds
+  return max_speed
 
 def clean_max_speed(graph: MultiDiGraph, return_max_speed=False) -> Optional[float]:
   min_max_speed_allowed = 30
   max_speed_allowed = 30
   for edge in graph.edges:
     edge_data = graph.edges[edge]
-    max_speed = min_max_speed_allowed
-    if "maxspeed" in edge_data:
-      max_speeds = edge_data["maxspeed"]
-      if isinstance(max_speeds, list):
-        speeds: List[int] = [ int(speed) for speed in max_speeds if speed and speed.isnumeric() ]
-        if len(speeds) > 0:
-          max_speed = min(speeds)
-      elif isinstance(max_speeds, str) and max_speeds.isnumeric():
-        max_speed = int(max_speeds)
-      elif isinstance(max_speeds, int):
-        max_speed = max_speeds
+    max_speed = get_max_speed(edge_data, min_max_speed_allowed)
     edge_data["maxspeed"] = max_speed
     max_speed_allowed = max(max_speed, max_speed_allowed)
   if return_max_speed:
     return max_speed_allowed
+  
+def convert_multidigraph_to_graph(graph: MultiDiGraph) -> Graph:
+  all_edges: Dict[EdgeId, Edge] = dict()
+  to_node_by_node: Dict[NodeId, List[NodeId]] = dict()
+  for edge in graph.edges:
+    u, v, _ = edge
+    current_edge = graph.edges[edge]
+    all_edges[(u, v)] = Edge(id=(u, v), length=current_edge["length"], maxspeed=get_max_speed(current_edge))
+    if u not in to_node_by_node:
+      to_node_by_node[u] = []
+    to_node_by_node[u].append(v)
+
+  all_nodes: Dict[NodeId, RawNode] = {node: RawNode(id=node, next_nodes=to_node_by_node.get(node, [])) for node in graph.nodes}
+  return Graph(nodes=all_nodes, edges=all_edges)
