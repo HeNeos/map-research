@@ -71,14 +71,14 @@ def a_star(
                 for active_edges in graph.out_edges(next_node):
                     style_active_edge(graph, (active_edges[0], active_edges[1], 0))
             if video:
-                if iteration % 100 == 0:
-                    frame_number = f"{iteration // 100:08d}"
+                if iteration % 50 == 0:
+                    frame_number = f"{iteration // 50:08d}"
                     plot_graph(
                         graph=graph,
                         simple_graph=simple_graph,
                         iteration=iteration,
                         algorithm=f"{algorithm_name}_assets/{algorithm_name}-exploration_{frame_number}",
-                        dpi=450,
+                        dpi=256,
                     )
     return None
 
@@ -134,7 +134,7 @@ def run_a_star(
             algorithm=f"{algorithm_name}_assets/{algorithm_name}-path",
             time=time,
             dist=dist,
-            dpi=2048,
+            dpi=512,
         )
     else:
         print("Failed to find a path")

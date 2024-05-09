@@ -121,7 +121,7 @@ def plot_graph(
     algorithm: str = "default",
     time: Optional[float] = None,
     dist: Optional[float] = None,
-    dpi: int = 1024,
+    dpi: int = 256,
 ) -> None:
     node_colors = {"source": "blue", "destination": "red", "default": "white"}
     fig, ax = ox.plot_graph(
@@ -172,9 +172,6 @@ def reconstruct_path(
     source: int,
     destination: int,
 ) -> Tuple[float, float]:
-    for edge in graph.edges:
-        style_unvisited_edge(graph, edge)
-
     dist: float = 0
     time: float = 0
     current: int = destination
