@@ -2,12 +2,12 @@
 
 ## Dijkstra
 
-https://github.com/HeNeos/map-research/assets/46503611/c18de01c-5155-4227-8243-10a4085852b6
+https://github.com/HeNeos/map-research/assets/46503611/be954ffd-fde6-479e-9011-c9ee44c16ae4
 
 ## A*
 
-https://github.com/HeNeos/map-research/assets/46503611/6a935efd-1bd4-4222-9d79-119159e23b05
+https://github.com/HeNeos/map-research/assets/46503611/db0215ef-0872-4c8f-9e90-fc383ee8e80c
 
 ## A* enhanced
 
-https://github.com/HeNeos/map-research/assets/46503611/74c1cc5f-c466-4052-86af-c929eed45dfd
+https://github.com/HeNeos/map-research/assets/46503611/562d0375-bd4f-4c14-8069-7e82ebedcb09
