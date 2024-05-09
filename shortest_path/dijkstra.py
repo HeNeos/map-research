@@ -64,11 +64,12 @@ def dijkstra(
                 for active_edges in graph.out_edges(next_node):
                     style_active_edge(graph, (active_edges[0], active_edges[1], 0))
             if video:
-                if iteration % 90 == 0:
-                    frame_number = f"{iteration // 90:08d}"
+                if iteration % 100 == 0:
+                    frame_number = f"{iteration // 100:08d}"
                     plot_graph(
-                        graph,
-                        simple_graph,
+                        graph=graph,
+                        simple_graph=simple_graph,
+                        iteration=iteration,
                         algorithm=f"{algorithm_name}_assets/{algorithm_name}-exploration_{frame_number}",
                         dpi=450,
                     )
@@ -115,14 +116,17 @@ def run_dijkstra(
         algorithm_name=algorithm_name,
     )
     if iterations is not None:
-        plot_graph(
-            G,
-            simple_graph,
-            algorithm=f"{algorithm_name}_assets/{algorithm_name}-exploration",
-            dpi=2048,
+        dist, time = reconstruct_path(
+            graph=G, simple_graph=simple_graph, source=source, destination=destination
         )
-        reconstruct_path(
-            G, simple_graph, source, destination, plot=True, algorithm=algorithm_name
+        plot_graph(
+            graph=G,
+            simple_graph=simple_graph,
+            iteration=iterations,
+            algorithm=f"{algorithm_name}_assets/{algorithm_name}-path",
+            time=time,
+            dist=dist,
+            dpi=2048,
         )
     else:
         print("Failed to find a path")

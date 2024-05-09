@@ -9,7 +9,7 @@ map_to_strategies = {
     "shortest_path_dijkstra": run_dijkstra,
     "shortest_path_a_star": run_a_star,
     "shortest_path_a_star_enhanced": run_a_star_enhanced,
-    "shortest_path_dijkstra_raw": run_raw_dijkstra,
+    # "shortest_path_dijkstra_raw": run_raw_dijkstra,
 }
 
 

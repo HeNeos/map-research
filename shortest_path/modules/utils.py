@@ -1,6 +1,6 @@
 import osmnx as ox
 from networkx import MultiDiGraph
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 from .simple_graph import Node, RawNode, NodeId, Edge, EdgeId, Graph
 import matplotlib.pyplot as plt
 from haversine import haversine
@@ -117,11 +117,14 @@ def plot_graph_raw(graph: MultiDiGraph, edges_in_path: List[EdgeId]):
 def plot_graph(
     graph: MultiDiGraph,
     simple_graph: Dict[int, Node],
+    iteration: int,
     algorithm: str = "default",
+    time: Optional[float] = None,
+    dist: Optional[float] = None,
     dpi: int = 1024,
 ) -> None:
     node_colors = {"source": "blue", "destination": "red", "default": "white"}
-    ox.plot_graph(
+    fig, ax = ox.plot_graph(
         graph,
         node_size=[simple_graph[node].size for node in graph.nodes],
         node_alpha=[simple_graph[node].alpha for node in graph.nodes],
@@ -134,10 +137,23 @@ def plot_graph(
         ],
         bgcolor="#000000",
         show=False,
-        save=True,
-        dpi=dpi,
-        filepath=f"./assets/{algorithm}.png",
+        save=False,
+        close=False,
     )
+    titles = "\n".join(
+        [
+            f"{title_name}: {title_value}"
+            for (title_name, title_value) in [
+                ("Iteration", iteration),
+                ("Time", time),
+                ("Distance", dist),
+            ]
+            if title_value is not None
+        ]
+    )
+    ax.set_title(titles, color="#3b528b", fontsize=10)
+
+    plt.savefig(f"./assets/{algorithm}.png", dpi=dpi, format="png")
     plt.close()
 
 
@@ -155,9 +171,7 @@ def reconstruct_path(
     simple_graph: Dict[int, Node],
     source: int,
     destination: int,
-    plot=True,
-    algorithm=None,
-) -> None:
+) -> Tuple[float, float]:
     for edge in graph.edges:
         style_unvisited_edge(graph, edge)
 
@@ -172,20 +186,14 @@ def reconstruct_path(
         dist += current_length
         time += current_length / current_max_speed
         style_path_edge(graph, (previous, current, 0))
-        if algorithm:
-            edge_data[f"{algorithm}_uses"] = edge_data.get(f"{algorithm}_uses", 0) + 1
+        # if algorithm:
+        #     edge_data[f"{algorithm}_uses"] = edge_data.get(f"{algorithm}_uses", 0) + 1
         current = previous
     time_sec = time * 60 * 60
     print(f"Total dist = {dist} km")
     print(f"Total time = {int (time_sec // 60)} m {int(time_sec % 60)} sec")
     print(f"Speed average = {dist / time}")
-    if plot:
-        plot_graph(
-            graph,
-            simple_graph,
-            algorithm=f"{algorithm}_assets/{algorithm}-path",
-            dpi=1024,
-        )
+    return dist, time_sec
 
 
 def find_nearest_node_from_point(graph: MultiDiGraph, latitude, longitude) -> int:
