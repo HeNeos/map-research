@@ -5,6 +5,8 @@ import random
 import requests
 import heapq
 
+from math import log
+
 from .modules.utils import (
     style_unvisited_edge,
     style_visited_edge,
@@ -73,7 +75,10 @@ def a_star_enhanced(
                 else:
                     level_max_distance = destination_distance
                 if best_node_distance:
-                    if destination_distance > 2 * best_node_distance:
+                    if (
+                        destination_distance * (min(1.0, log(1.0 + best_node_distance)))
+                        > 2 * best_node_distance
+                    ):
                         continue
                 else:
                     best_node_distance = min(
@@ -86,8 +91,8 @@ def a_star_enhanced(
                 for active_edges in graph.out_edges(next_node):
                     style_active_edge(graph, (active_edges[0], active_edges[1], 0))
             if video:
-                if iteration % 50 == 0:
-                    frame_number = f"{iteration // 50:08d}"
+                if iteration % 100 == 0:
+                    frame_number = f"{iteration // 100:08d}"
                     plot_graph(
                         graph=graph,
                         simple_graph=simple_graph,
