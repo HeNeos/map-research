@@ -91,8 +91,8 @@ def a_star_enhanced(
                 for active_edges in graph.out_edges(next_node):
                     style_active_edge(graph, (active_edges[0], active_edges[1], 0))
             if video:
-                if iteration % 100 == 0:
-                    frame_number = f"{iteration // 100:08d}"
+                if iteration % 50 == 0:
+                    frame_number = f"{iteration // 50:08d}"
                     plot_graph(
                         graph=graph,
                         simple_graph=simple_graph,
